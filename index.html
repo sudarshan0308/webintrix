@@ -83,7 +83,7 @@
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // OS Performance optimization
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.toneMapping = THREE.ReinhardToneMapping;
         document.body.appendChild(renderer.domElement);
 
@@ -106,9 +106,10 @@
         openSound = new THREE.Audio(listener);
         timerSound = new THREE.Audio(listener);
 
-        audioLoader.load('/static/sounds/transform.mp3', (buf) => transSound.setBuffer(buf));
-        audioLoader.load('/static/sounds/opening.mp3', (buf) => openSound.setBuffer(buf));
-        audioLoader.load('/static/sounds/timer.mp3', (buf) => timerSound.setBuffer(buf));
+        // PATH FIX: Added ./ for relative paths
+        audioLoader.load('./static/sounds/transform.mp3', (buf) => transSound.setBuffer(buf));
+        audioLoader.load('./static/sounds/opening.mp3', (buf) => openSound.setBuffer(buf));
+        audioLoader.load('./static/sounds/timer.mp3', (buf) => timerSound.setBuffer(buf));
 
         function playDialClick() {
             const osc = listener.context.createOscillator();
@@ -121,17 +122,18 @@
         }
 
         const textureLoader = new THREE.TextureLoader();
+        // PATH FIX: Added ./ for relative paths
         const alienData = [
-            { name: "HEATBLAST", tex: textureLoader.load('/static/models/alien1.png') },
-            { name: "DIAMONDHEAD", tex: textureLoader.load('/static/models/alien2.png') },
-            { name: "FOUR ARMS", tex: textureLoader.load('/static/models/alien3.png') },
-            { name: "STINKFLY", tex: textureLoader.load('/static/models/alien4.png') },
-            { name: "GREY MATTER", tex: textureLoader.load('/static/models/alien5.png') },
-            { name: "XLR8", tex: textureLoader.load('/static/models/alien6.png') },
-            { name: "WILDMUTT", tex: textureLoader.load('/static/models/alien7.png') },
-            { name: "UPGRADE", tex: textureLoader.load('/static/models/alien8.png') },
-            { name: "VERTEBRATE", tex: textureLoader.load('/static/models/alien9.png') },
-            { name: "GHOSTFREAK", tex: textureLoader.load('/static/models/alien10.png') }
+            { name: "HEATBLAST", tex: textureLoader.load('./static/models/alien1.png') },
+            { name: "DIAMONDHEAD", tex: textureLoader.load('./static/models/alien2.png') },
+            { name: "FOUR ARMS", tex: textureLoader.load('./static/models/alien3.png') },
+            { name: "STINKFLY", tex: textureLoader.load('./static/models/alien4.png') },
+            { name: "GREY MATTER", tex: textureLoader.load('./static/models/alien5.png') },
+            { name: "XLR8", tex: textureLoader.load('./static/models/alien6.png') },
+            { name: "WILDMUTT", tex: textureLoader.load('./static/models/alien7.png') },
+            { name: "UPGRADE", tex: textureLoader.load('./static/models/alien8.png') },
+            { name: "VERTEBRATE", tex: textureLoader.load('./static/models/alien9.png') },
+            { name: "GHOSTFREAK", tex: textureLoader.load('./static/models/alien10.png') }
         ];
 
         const spriteMat = new THREE.SpriteMaterial({ map: alienData[0].tex, color: 0x00ff00, transparent: true, opacity: 0, blending: THREE.AdditiveBlending });
@@ -142,7 +144,8 @@
 
         omnitrixGroup = new THREE.Group();
         scene.add(omnitrixGroup);
-        new GLTFLoader().load('/static/models/omnitrix.glb', (gltf) => {
+        // PATH FIX: Added ./ for relative paths
+        new GLTFLoader().load('./static/models/omnitrix.glb', (gltf) => {
             const model = gltf.scene;
             const box = new THREE.Box3().setFromObject(model);
             const center = new THREE.Vector3();
@@ -169,9 +172,8 @@
             bloomPass.strength = 0.5;
         }
 
-        // --- INTERACTION ENGINE (ALL OS SUPPORT) ---
         window.addEventListener('click', () => {
-            if (listener.context.state === 'suspended') listener.context.resume(); // Safari/Chrome Audio Fix
+            if (listener.context.state === 'suspended') listener.context.resume();
             if (isTransformed) return;
             if (!isActive) {
                 isActive = true;
@@ -210,7 +212,6 @@
             }, 1000);
         }
 
-        // Desktop Scroll Listener
         window.addEventListener('wheel', (e) => {
             if (isActive && !isTransformed) {
                 if (dialPart) dialPart.rotation.y += e.deltaY * 0.01;
@@ -218,7 +219,6 @@
             }
         });
 
-        // Mobile Touch Listener
         let lastY = 0;
         window.addEventListener('touchstart', (e) => { lastY = e.touches[0].clientY; });
         window.addEventListener('touchmove', (e) => {
