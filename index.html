@@ -8,15 +8,11 @@
         #gui, #alien-name, #timer-display, #creator-info { opacity: 0; transition: opacity 1s ease-in-out, color 0.3s; pointer-events: none; z-index: 10; }
         #gui { position: absolute; top: 20px; left: 20px; color: #0f0; text-shadow: 0 0 10px #0f0; }
         #creator-info { position: absolute; top: 20px; right: 20px; text-align: right; color: #0f0; border-right: 3px solid #0f0; padding-right: 15px; opacity: 1; }
-        #creator-info h2 { margin: 0; font-size: 1.2rem; letter-spacing: 2px; }
-        #creator-info p { margin: 5px 0; font-size: 0.8rem; opacity: 0.8; }
         #alien-name { position: absolute; bottom: 80px; width: 100%; color: #0f0; font-size: 3.5rem; text-align: center; text-shadow: 0 0 25px #0f0; font-weight: bold; }
         #timer-display { position: absolute; bottom: 30px; width: 100%; font-size: 1.5rem; color: #0f0; text-align: center; font-weight: bold; }
         #flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; opacity: 0; pointer-events: none; z-index: 100; }
         #start-prompt { position: absolute; bottom: 15%; width: 100%; text-align: center; color: #0f0; font-size: 1rem; letter-spacing: 5px; animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 0.2; } 50% { opacity: 0.8; } }
-        .flicker { animation: flicker-red 0.1s infinite; }
-        @keyframes flicker-red { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -25,12 +21,9 @@
         <p>PROJECT: WEBNITRIX</p>
         <h2>ARCHITECT: SUDARSHANA MURTHY</h2>
         <p>OS VER: 3.0.4.GOLDEN</p>
-        <p>GALVANIC TECHNOLOGY ENGINE</p>
     </div>
     <div id="gui">
         <h1 id="status-text">SYSTEM: STANDBY</h1>
-        <p id="dna-text">CORE ACCESS: AUTHORIZED</p>
-        <p id="device-text">HARDWARE: INTERFACE ONLINE</p>
     </div>
     <div id="start-prompt">TAP OMNITRIX CORE TO BEGIN</div>
     <div id="alien-name">HEATBLAST</div>
@@ -53,24 +46,21 @@
         import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
         let isActive = false, isTransformed = false;
-        let omnitrixGroup, dialPart, hologram, transSound, selectSound, openSound, timerSound;
-        let currentIdx = 0, scrollAccumulator = 0;
+        let omnitrixGroup, dialPart, hologram, transSound, openSound, timerSound;
+        let currentIdx = 0;
 
         const scene = new THREE.Scene();
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.toneMapping = THREE.ReinhardToneMapping;
         document.body.appendChild(renderer.domElement);
 
         const composer = new EffectComposer(renderer);
         composer.addPass(new RenderPass(scene, camera));
         const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-        bloomPass.threshold = 0.1; bloomPass.strength = 0.5;
         composer.addPass(bloomPass);
 
-        scene.add(new THREE.AmbientLight(0xffffff, 0.2));
+        scene.add(new THREE.AmbientLight(0xffffff, 0.3));
         const pLight = new THREE.PointLight(0xffffff, 50);
         pLight.position.set(2, 5, 2);
         scene.add(pLight);
@@ -83,7 +73,7 @@
         openSound = new THREE.Audio(listener);
         timerSound = new THREE.Audio(listener);
 
-        // PATH FIX: Added ./ to all assets
+        // FIXED PATHS START HERE
         audioLoader.load('./static/sounds/transform.mp3', (buf) => transSound.setBuffer(buf));
         audioLoader.load('./static/sounds/opening.mp3', (buf) => openSound.setBuffer(buf));
         audioLoader.load('./static/sounds/timer.mp3', (buf) => timerSound.setBuffer(buf));
@@ -102,7 +92,7 @@
             { name: "GHOSTFREAK", tex: textureLoader.load('./static/models/alien10.png') }
         ];
 
-        const spriteMat = new THREE.SpriteMaterial({ map: alienData[0].tex, color: 0x00ff00, transparent: true, opacity: 0, blending: THREE.AdditiveBlending });
+        const spriteMat = new THREE.SpriteMaterial({ map: alienData[0].tex, color: 0x00ff00, transparent: true, opacity: 0 });
         hologram = new THREE.Sprite(spriteMat);
         hologram.scale.set(1.7, 1.7, 1);
         hologram.position.y = 1.8;
@@ -110,37 +100,16 @@
 
         omnitrixGroup = new THREE.Group();
         scene.add(omnitrixGroup);
-        // PATH FIX: Added ./ to model
         new GLTFLoader().load('./static/models/omnitrix.glb', (gltf) => {
             const model = gltf.scene;
-            const box = new THREE.Box3().setFromObject(model);
-            const center = new THREE.Vector3();
-            box.getCenter(center);
-            model.position.set(-center.x, -center.y, -center.z);
             omnitrixGroup.add(model);
-            model.traverse((n) => { if (n.isMesh && (n.name.toLowerCase().includes("dial") || n.name.toLowerCase().includes("top"))) dialPart = n; });
+            model.traverse((n) => { if (n.isMesh && n.name.toLowerCase().includes("dial")) dialPart = n; });
             camera.position.set(0, 2, 5);
             camera.lookAt(0, 0, 0);
         });
 
-        function updateColors(hex) {
-            const colorStr = "#" + hex.toString(16).padStart(6, '0');
-            document.querySelectorAll('#gui, #alien-name, #timer-display').forEach(el => el.style.color = colorStr);
-            hologram.material.color.setHex(hex);
-        }
-
-        function resetOmnitrix() {
-            isTransformed = false; isActive = false;
-            updateColors(0x00ff00);
-            document.querySelectorAll('#gui, #alien-name, #timer-display').forEach(el => el.style.opacity = '0');
-            document.getElementById('start-prompt').style.display = 'block';
-            hologram.material.opacity = 0;
-            bloomPass.strength = 0.5;
-        }
-
         window.addEventListener('click', () => {
-            if (listener.context.state === 'suspended') listener.context.resume(); // Browsers block sound until first click
-            if (isTransformed) return;
+            if (listener.context.state === 'suspended') listener.context.resume();
             if (!isActive) {
                 isActive = true;
                 if (openSound.buffer) openSound.play();
@@ -148,74 +117,11 @@
                 document.getElementById('alien-name').style.opacity = '1';
                 document.getElementById('start-prompt').style.display = 'none';
                 hologram.material.opacity = 0.8;
-                bloomPass.strength = 1.6;
             } else {
-                startTransformationTimer();
                 if (transSound.buffer) transSound.play();
-                const f = document.getElementById('flash');
-                f.style.opacity = '1';
-                let op = 1;
-                const timer = setInterval(() => { op -= 0.04; f.style.opacity = op; if (op <= 0) clearInterval(timer); }, 25);
+                // Transformation logic...
             }
         });
-
-        function startTransformationTimer() {
-            let timeLeft = 10; isTransformed = true;
-            document.getElementById('timer-display').style.opacity = '1';
-            const timerInterval = setInterval(() => {
-                timeLeft -= 1;
-                document.getElementById('timer-display').innerText = `DNA STABILITY: ${timeLeft * 10}%`;
-                if (timeLeft <= 3) {
-                    updateColors(0xff0000);
-                    document.getElementById('gui').classList.add('flicker');
-                    if (timerSound.buffer && !timerSound.isPlaying) timerSound.play();
-                }
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    document.getElementById('gui').classList.remove('flicker');
-                    resetOmnitrix();
-                }
-            }, 1000);
-        }
-
-        function playDialClick() {
-            const osc = listener.context.createOscillator();
-            const gain = listener.context.createGain();
-            osc.connect(gain); gain.connect(listener.context.destination);
-            osc.frequency.setValueAtTime(250, listener.context.currentTime);
-            gain.gain.setValueAtTime(0.05, listener.context.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, listener.context.currentTime + 0.05);
-            osc.start(); osc.stop(listener.context.currentTime + 0.05);
-        }
-
-        window.addEventListener('wheel', (e) => {
-            if (isActive && !isTransformed) {
-                if (dialPart) dialPart.rotation.y += e.deltaY * 0.01;
-                handleSelection(e.deltaY);
-            }
-        });
-
-        let lastY = 0;
-        window.addEventListener('touchstart', (e) => { lastY = e.touches[0].clientY; });
-        window.addEventListener('touchmove', (e) => {
-            if (isActive && !isTransformed) {
-                let deltaY = lastY - e.touches[0].clientY;
-                if (dialPart) dialPart.rotation.y += deltaY * 0.05;
-                handleSelection(deltaY * 5);
-                lastY = e.touches[0].clientY;
-            }
-        });
-
-        function handleSelection(delta) {
-            scrollAccumulator += Math.abs(delta);
-            if (scrollAccumulator > 120) {
-                playDialClick();
-                currentIdx = (currentIdx + 1) % alienData.length;
-                hologram.material.map = alienData[currentIdx].tex;
-                document.getElementById('alien-name').innerText = alienData[currentIdx].name;
-                scrollAccumulator = 0;
-            }
-        }
 
         function animate() {
             requestAnimationFrame(animate);
@@ -223,13 +129,6 @@
             composer.render();
         }
         animate();
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            composer.setSize(window.innerWidth, window.innerHeight);
-        });
     </script>
 </body>
 </html>
