@@ -1,36 +1,74 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Omnitrix OS</title>
+    <title>Omnitrix OS - Final Master</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', Courier, monospace; color: #0f0; }
-        #gui { position: absolute; top: 20px; left: 20px; z-index: 10; }
-        #alien-name { position: absolute; bottom: 80px; width: 100%; font-size: 3rem; text-align: center; font-weight: bold; text-shadow: 0 0 20px #0f0; }
-        #start-prompt { position: absolute; bottom: 15%; width: 100%; text-align: center; letter-spacing: 5px; animation: pulse 2s infinite; }
+        body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', Courier, monospace; }
+        #gui, #alien-name, #timer-display, #creator-info { opacity: 0; transition: opacity 1s ease-in-out, color 0.3s; pointer-events: none; z-index: 10; }
+        #gui { position: absolute; top: 20px; left: 20px; color: #0f0; text-shadow: 0 0 10px #0f0; }
+        #creator-info { position: absolute; top: 20px; right: 20px; text-align: right; color: #0f0; border-right: 3px solid #0f0; padding-right: 15px; opacity: 1; }
+        #creator-info h2 { margin: 0; font-size: 1.2rem; letter-spacing: 2px; }
+        #creator-info p { margin: 5px 0; font-size: 0.8rem; opacity: 0.8; }
+        #alien-name { position: absolute; bottom: 80px; width: 100%; color: #0f0; font-size: 3.5rem; text-align: center; text-shadow: 0 0 25px #0f0; font-weight: bold; }
+        #timer-display { position: absolute; bottom: 30px; width: 100%; font-size: 1.5rem; color: #0f0; text-align: center; font-weight: bold; }
+        #flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; opacity: 0; pointer-events: none; z-index: 100; }
+        #start-prompt { position: absolute; bottom: 15%; width: 100%; text-align: center; color: #0f0; font-size: 1rem; letter-spacing: 5px; animation: pulse 2s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 0.2; } 50% { opacity: 0.8; } }
+        .flicker { animation: flicker-red 0.1s infinite; }
+        @keyframes flicker-red { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+        @media (max-width: 600px) { #alien-name { font-size: 2rem; } #creator-info h2 { font-size: 0.9rem; } }
     </style>
 </head>
 <body>
-    <div id="gui"><h1>SYSTEM: READY</h1></div>
-    <div id="start-prompt">TAP CORE TO INITIALIZE</div>
+    <div id="flash"></div>
+    <div id="creator-info">
+        <p>PROJECT: WEBNITRIX</p>
+        <h2>ARCHITECT: SUDARSHANA MURTHY</h2>
+        <p>OS VER: 3.0.4.GOLDEN</p>
+        <p>GALVANIC TECHNOLOGY ENGINE</p>
+    </div>
+    <div id="gui">
+        <h1 id="status-text">SYSTEM: STANDBY</h1>
+        <p id="dna-text">CORE ACCESS: AUTHORIZED</p>
+        <p id="device-text">HARDWARE: INTERFACE ONLINE</p>
+    </div>
+    <div id="start-prompt">TAP OMNITRIX CORE TO BEGIN</div>
     <div id="alien-name">HEATBLAST</div>
+    <div id="timer-display">DNA STABILITY: 100%</div>
 
     <script type="importmap">
-        { "imports": { "three": "https://unpkg.com/three@0.160.0/build/three.module.js", "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/" } }
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
     </script>
 
     <script type="module">
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+        import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+        import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+        import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+        let isActive = false, isTransformed = false;
+        let omnitrixGroup, dialPart, hologram, transSound, openSound, timerSound;
+        let currentIdx = 0, scrollAccumulator = 0;
 
         const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+        const composer = new EffectComposer(renderer);
+        composer.addPass(new RenderPass(scene, camera));
+        const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
+        composer.addPass(bloomPass);
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.3));
         const pLight = new THREE.PointLight(0xffffff, 50);
         pLight.position.set(2, 5, 2);
         scene.add(pLight);
@@ -39,38 +77,71 @@
         camera.add(listener);
 
         const audioLoader = new THREE.AudioLoader();
-        const openSound = new THREE.Audio(listener);
-        // RELATIVE PATHS
+        openSound = new THREE.Audio(listener);
+        transSound = new THREE.Audio(listener);
+        timerSound = new THREE.Audio(listener);
+
         audioLoader.load('./static/sounds/opening.mp3', (buf) => openSound.setBuffer(buf));
+        audioLoader.load('./static/sounds/transform.mp3', (buf) => transSound.setBuffer(buf));
+        audioLoader.load('./static/sounds/timer.mp3', (buf) => timerSound.setBuffer(buf));
 
         const textureLoader = new THREE.TextureLoader();
-        const alienTex = textureLoader.load('./static/models/alien1.png');
-        const spriteMat = new THREE.SpriteMaterial({ map: alienTex, color: 0x00ff00, transparent: true, opacity: 0 });
-        const hologram = new THREE.Sprite(spriteMat);
-        hologram.scale.set(1.5, 1.5, 1);
+        const alienData = [
+            { name: "HEATBLAST", tex: textureLoader.load('./static/models/alien1.png') },
+            { name: "DIAMONDHEAD", tex: textureLoader.load('./static/models/alien2.png') },
+            { name: "FOUR ARMS", tex: textureLoader.load('./static/models/alien3.png') },
+            { name: "STINKFLY", tex: textureLoader.load('./static/models/alien4.png') },
+            { name: "GREY MATTER", tex: textureLoader.load('./static/models/alien5.png') },
+            { name: "XLR8", tex: textureLoader.load('./static/models/alien6.png') },
+            { name: "WILDMUTT", tex: textureLoader.load('./static/models/alien7.png') },
+            { name: "UPGRADE", tex: textureLoader.load('./static/models/alien8.png') },
+            { name: "VERTEBRATE", tex: textureLoader.load('./static/models/alien9.png') },
+            { name: "GHOSTFREAK", tex: textureLoader.load('./static/models/alien10.png') }
+        ];
+
+        const spriteMat = new THREE.SpriteMaterial({ map: alienData[0].tex, color: 0x00ff00, transparent: true, opacity: 0 });
+        hologram = new THREE.Sprite(spriteMat);
+        hologram.scale.set(1.7, 1.7, 1);
         hologram.position.y = 1.8;
         scene.add(hologram);
 
-        const loader = new GLTFLoader();
-        // RELATIVE PATHS
-        loader.load('./static/models/omnitrix.glb', (gltf) => {
-            scene.add(gltf.scene);
+        new GLTFLoader().load('./static/models/omnitrix.glb', (gltf) => {
+            omnitrixGroup = gltf.scene;
+            scene.add(omnitrixGroup);
+            omnitrixGroup.traverse((n) => { if (n.isMesh && n.name.toLowerCase().includes("dial")) dialPart = n; });
             camera.position.set(0, 2, 5);
             camera.lookAt(0, 0, 0);
-            console.log("Omnitrix Loaded Successfully!");
-        }, undefined, (err) => console.error("Error loading model:", err));
+        });
+
+        function updateColors(hex) {
+            const colorStr = "#" + hex.toString(16).padStart(6, '0');
+            document.querySelectorAll('#gui, #alien-name, #timer-display').forEach(el => el.style.color = colorStr);
+            hologram.material.color.setHex(hex);
+        }
 
         window.addEventListener('click', () => {
             if (listener.context.state === 'suspended') listener.context.resume();
-            hologram.material.opacity = 0.8;
-            if (openSound.buffer) openSound.play();
-            document.getElementById('start-prompt').style.display = 'none';
+            if (!isActive) {
+                isActive = true;
+                if (openSound.buffer) openSound.play();
+                document.querySelectorAll('#gui, #alien-name').forEach(el => el.style.opacity = '1');
+                document.getElementById('start-prompt').style.display = 'none';
+                hologram.material.opacity = 0.8;
+            }
+        });
+
+        window.addEventListener('wheel', (e) => {
+            if (isActive && !isTransformed) {
+                currentIdx = (currentIdx + 1) % alienData.length;
+                hologram.material.map = alienData[currentIdx].tex;
+                document.getElementById('alien-name').innerText = alienData[currentIdx].name;
+            }
         });
 
         function animate() {
             requestAnimationFrame(animate);
-            if (hologram) hologram.position.y = 1.8 + Math.sin(Date.now() * 0.003) * 0.05;
-            renderer.render(scene, camera);
+            if (isActive && hologram) hologram.position.y = 1.8 + Math.sin(Date.now() * 0.003) * 0.05;
+            composer.render();
         }
         animate();
     </script>
