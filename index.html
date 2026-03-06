@@ -6,14 +6,30 @@
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', monospace; }
         #ui-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; color: #0f0; }
+        
+        /* Left Side Stats */
         .stats { position: absolute; top: 20px; left: 20px; text-shadow: 0 0 10px #0f0; }
-        .creator { position: absolute; top: 20px; right: 20px; text-align: right; border-right: 3px solid #0f0; padding-right: 10px; }
-        #alien-label { position: absolute; bottom: 80px; width: 100%; text-align: center; font-size: 3rem; font-weight: bold; opacity: 0; }
+        
+        /* Right Side Creator Info - Fixed and Styled */
+        #creator-info { 
+            position: absolute; 
+            top: 20px; 
+            right: 20px; 
+            text-align: right; 
+            border-right: 3px solid #0f0; 
+            padding-right: 15px; 
+            text-shadow: 0 0 8px #0f0;
+            line-height: 1.2;
+        }
+        #creator-info h2 { margin: 5px 0; font-size: 1.2rem; }
+        #creator-info p { margin: 2px 0; font-size: 0.8rem; letter-spacing: 1px; }
+
+        #alien-label { position: absolute; bottom: 80px; width: 100%; text-align: center; font-size: 3rem; font-weight: bold; opacity: 0; transition: opacity 0.5s; }
         #timer-label { position: absolute; bottom: 30px; width: 100%; text-align: center; font-size: 1.2rem; opacity: 0; }
         #flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; opacity: 0; z-index: 100; pointer-events: none; }
         
-        /* Adjusted Prompt Position to avoid overlapping the watch */
-        #prompt { position: absolute; bottom: 18%; width: 100%; text-align: center; letter-spacing: 5px; animation: breathe 2s infinite; font-weight: bold; }
+        /* Lowered Prompt */
+        #prompt { position: absolute; bottom: 10%; width: 100%; text-align: center; letter-spacing: 5px; animation: breathe 2s infinite; font-weight: bold; text-shadow: 0 0 5px #0f0; }
         
         @keyframes breathe { 0%, 100% { opacity: 0.2; } 50% { opacity: 0.8; } }
         .flicker { animation: flash-red 0.15s infinite; }
@@ -27,12 +43,14 @@
             <h2 id="status-display">SYSTEM: STANDBY</h2>
             <p id="mode-display">MODE: IDLE</p>
         </div>
+
         <div id="creator-info">
-        <p>PROJECT: WEBNITRIX</p>
-        <h2>ARCHITECT: SUDARSHANA MURTHY</h2>
-        <p>OS VER: 3.0.4.GOLDEN</p>
-        <p>GALVANIC TECHNOLOGY ENGINE</p>
-    </div>
+            <p>PROJECT: WEBNITRIX</p>
+            <h2>ARCHITECT: SUDARSHANA MURTHY</h2>
+            <p>OS VER: 3.0.4.GOLDEN</p>
+            <p>GALVANIC TECHNOLOGY ENGINE</p>
+        </div>
+
         <div id="prompt">INTERACT TO ACTIVATE</div>
         <div id="alien-label">HEATBLAST</div>
         <div id="timer-label">DNA STABILITY: 100%</div>
@@ -66,25 +84,16 @@
         loader.load('./static/sounds/transform.mp3', b => transSnd.setBuffer(b));
         loader.load('./static/sounds/timer.mp3', b => beepSnd.setBuffer(b));
 
-        // NEW: REAL-TIME MECHANICAL DIAL CLICK
         function playMechanicalClick() {
             const ctx = listener.context;
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
-            
-            // Low thud/click frequency
-            osc.type = 'sine';
             osc.frequency.setValueAtTime(150, ctx.currentTime);
             osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.05);
-
             gain.gain.setValueAtTime(0.1, ctx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
-
-            osc.connect(gain);
-            gain.connect(ctx.destination);
-
-            osc.start();
-            osc.stop(ctx.currentTime + 0.05);
+            osc.connect(gain); gain.connect(ctx.destination);
+            osc.start(); osc.stop(ctx.currentTime + 0.05);
         }
 
         const texLoader = new THREE.TextureLoader();
@@ -111,6 +120,9 @@
             document.getElementById('status-display').innerText = `SYSTEM: ${status}`;
             document.getElementById('mode-display').innerText = `MODE: ${mode}`;
             hologram.material.color.setHex(color);
+            // Also update the creator info color to match the phase
+            document.getElementById('creator-info').style.color = c;
+            document.getElementById('creator-info').style.borderColor = c;
         }
 
         window.addEventListener('click', () => {
@@ -132,7 +144,6 @@
 
         window.addEventListener('wheel', (e) => {
             if (active && !transformed) {
-                // Trigger mechanical click on scroll
                 playMechanicalClick();
                 index = (index + 1) % aliens.length;
                 hologram.material.map = aliens[index].t;
