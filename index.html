@@ -61,122 +61,151 @@
     </script>
 
     <script type="module">
-        import * as THREE from 'three';
-        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-        let active = false, transformed = false, index = 0;
-        let hologram, dial, openSnd, transSnd, beepSnd;
+    let active = false, transformed = false, index = 0;
+    let hologram, dial, openSnd, transSnd, beepSnd;
 
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-        scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-        const pL = new THREE.PointLight(0xffffff, 60); pL.position.set(2, 5, 2); scene.add(pL);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+    const pL = new THREE.PointLight(0xffffff, 60); pL.position.set(2, 5, 2); scene.add(pL);
 
-        const listener = new THREE.AudioListener(); camera.add(listener);
-        const loader = new THREE.AudioLoader();
-        openSnd = new THREE.Audio(listener); transSnd = new THREE.Audio(listener); beepSnd = new THREE.Audio(listener);
+    const listener = new THREE.AudioListener(); camera.add(listener);
+    const loader = new THREE.AudioLoader();
+    openSnd = new THREE.Audio(listener); transSnd = new THREE.Audio(listener); beepSnd = new THREE.Audio(listener);
 
-        loader.load('./static/sounds/opening.mp3', b => openSnd.setBuffer(b));
-        loader.load('./static/sounds/transform.mp3', b => transSnd.setBuffer(b));
-        loader.load('./static/sounds/timer.mp3', b => beepSnd.setBuffer(b));
+    loader.load('./static/sounds/opening.mp3', b => openSnd.setBuffer(b));
+    loader.load('./static/sounds/transform.mp3', b => transSnd.setBuffer(b));
+    loader.load('./static/sounds/timer.mp3', b => beepSnd.setBuffer(b));
 
-        function playMechanicalClick() {
-            const ctx = listener.context;
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.frequency.setValueAtTime(150, ctx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.05);
-            gain.gain.setValueAtTime(0.1, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
-            osc.connect(gain); gain.connect(ctx.destination);
-            osc.start(); osc.stop(ctx.currentTime + 0.05);
+    // SOUND: MECHANICAL SCROLL
+    function playMechanicalClick() {
+        const ctx = listener.context;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.frequency.setValueAtTime(150, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(); osc.stop(ctx.currentTime + 0.05);
+    }
+
+    // NEW: SYNTHETIC DISCHARGE PULSE
+    // This creates that "Emergency Power" warble
+    function playDischargeWarning() {
+        const ctx = listener.context;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        osc.type = 'square'; // Sharper, more "electric" sound
+        osc.frequency.setValueAtTime(100, ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(200, ctx.currentTime + 0.2);
+        
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(); osc.stop(ctx.currentTime + 0.3);
+    }
+
+    const texLoader = new THREE.TextureLoader();
+    const aliens = [
+        { n: "HEATBLAST", t: texLoader.load('./static/models/alien1.png') },
+        { n: "DIAMONDHEAD", t: texLoader.load('./static/models/alien2.png') },
+        { n: "XLR8", t: texLoader.load('./static/models/alien6.png') },
+        { n: "FOUR ARMS", t: texLoader.load('./static/models/alien3.png') },
+        { n: "GREY MATTER", t: texLoader.load('./static/models/alien5.png') }
+    ];
+
+    hologram = new THREE.Sprite(new THREE.SpriteMaterial({ map: aliens[0].t, color: 0x00ff00, transparent: true, opacity: 0 }));
+    hologram.scale.set(1.6, 1.6, 1); hologram.position.y = 1.8; scene.add(hologram);
+
+    new GLTFLoader().load('./static/models/omnitrix.glb', (g) => {
+        scene.add(g.scene);
+        g.scene.traverse(n => { if(n.name.toLowerCase().includes("dial")) dial = n; });
+        camera.position.set(0, 2, 5); camera.lookAt(0,0,0);
+    });
+
+    function updateUI(color, status, mode) {
+        const c = "#" + color.toString(16).padStart(6, '0');
+        document.getElementById('ui-container').style.color = c;
+        document.getElementById('status-display').innerText = `SYSTEM: ${status}`;
+        document.getElementById('mode-display').innerText = `MODE: ${mode}`;
+        hologram.material.color.setHex(color);
+        document.getElementById('creator-info').style.color = c;
+        document.getElementById('creator-info').style.borderColor = c;
+    }
+
+    window.addEventListener('click', () => {
+        if (transformed) return;
+        if (!active) {
+            active = true;
+            if(openSnd.buffer) openSnd.play();
+            updateUI(0x00ff00, "ACTIVE", "SELECTION");
+            document.getElementById('alien-label').style.opacity = 1;
+            document.getElementById('prompt').style.display = "none";
+            hologram.material.opacity = 0.8;
+        } else {
+            transformed = true;
+            const flash = document.getElementById('flash');
+            flash.style.opacity = 1;
+            if(transSnd.buffer) transSnd.play();
+            setTimeout(() => { flash.style.opacity = 0; startTimer(); }, 150);
         }
+    });
 
-        const texLoader = new THREE.TextureLoader();
-        const aliens = [
-            { n: "HEATBLAST", t: texLoader.load('./static/models/alien1.png') },
-            { n: "DIAMONDHEAD", t: texLoader.load('./static/models/alien2.png') },
-            { n: "XLR8", t: texLoader.load('./static/models/alien6.png') },
-            { n: "FOUR ARMS", t: texLoader.load('./static/models/alien3.png') },
-            { n: "GREY MATTER", t: texLoader.load('./static/models/alien5.png') }
-        ];
-
-        hologram = new THREE.Sprite(new THREE.SpriteMaterial({ map: aliens[0].t, color: 0x00ff00, transparent: true, opacity: 0 }));
-        hologram.scale.set(1.6, 1.6, 1); hologram.position.y = 1.8; scene.add(hologram);
-
-        new GLTFLoader().load('./static/models/omnitrix.glb', (g) => {
-            scene.add(g.scene);
-            g.scene.traverse(n => { if(n.name.toLowerCase().includes("dial")) dial = n; });
-            camera.position.set(0, 2, 5); camera.lookAt(0,0,0);
-        });
-
-        function updateUI(color, status, mode) {
-            const c = "#" + color.toString(16).padStart(6, '0');
-            document.getElementById('ui-container').style.color = c;
-            document.getElementById('status-display').innerText = `SYSTEM: ${status}`;
-            document.getElementById('mode-display').innerText = `MODE: ${mode}`;
-            hologram.material.color.setHex(color);
-            // Also update the creator info color to match the phase
-            document.getElementById('creator-info').style.color = c;
-            document.getElementById('creator-info').style.borderColor = c;
+    window.addEventListener('wheel', () => {
+        if (active && !transformed) {
+            playMechanicalClick();
+            index = (index + 1) % aliens.length;
+            hologram.material.map = aliens[index].t;
+            document.getElementById('alien-label').innerText = aliens[index].n;
+            if(dial) dial.rotation.y += 0.4;
         }
+    });
 
-        window.addEventListener('click', () => {
-            if (transformed) return;
-            if (!active) {
-                active = true;
-                if(openSnd.buffer) openSnd.play();
-                updateUI(0x00ff00, "ACTIVE", "SELECTION");
-                document.getElementById('alien-label').style.opacity = 1;
-                document.getElementById('prompt').style.display = "none";
-                hologram.material.opacity = 0.8;
-            } else {
-                transformed = true;
-                if(transSnd.buffer) transSnd.play();
-                document.getElementById('flash').style.opacity = 1;
-                setTimeout(() => { document.getElementById('flash').style.opacity = 0; startTimer(); }, 150);
+    function startTimer() {
+        let time = 10;
+        document.getElementById('timer-label').style.opacity = 1;
+        updateUI(0x00ff00, "ACTIVE", "TRANSFORMED");
+
+        const count = setInterval(() => {
+            time--;
+            document.getElementById('timer-label').innerText = `DNA STABILITY: ${time * 10}%`;
+
+            if (time === 5) updateUI(0xffff00, "WARNING", "LOW POWER");
+            
+            if (time <= 3 && time > 0) {
+                updateUI(0xff0000, "CRITICAL", "DISCHARGING");
+                document.getElementById('ui-container').classList.add('flicker');
+                
+                // Play the built-in timer sound
+                if(beepSnd.buffer && !beepSnd.isPlaying) beepSnd.play();
+                // Layer it with the synthetic mechanical discharge pulse
+                playDischargeWarning();
             }
-        });
 
-        window.addEventListener('wheel', (e) => {
-            if (active && !transformed) {
-                playMechanicalClick();
-                index = (index + 1) % aliens.length;
-                hologram.material.map = aliens[index].t;
-                document.getElementById('alien-label').innerText = aliens[index].n;
-                if(dial) dial.rotation.y += 0.4;
+            if (time <= 0) { 
+                clearInterval(count); 
+                updateUI(0xff0000, "SHUTDOWN", "RECHARGING");
+                setTimeout(() => location.reload(), 1200); 
             }
-        });
+        }, 1000);
+    }
 
-        function startTimer() {
-            let time = 10;
-            document.getElementById('timer-label').style.opacity = 1;
-            updateUI(0x00ff00, "ACTIVE", "TRANSFORMED");
-
-            const count = setInterval(() => {
-                time--;
-                document.getElementById('timer-label').innerText = `DNA STABILITY: ${time * 10}%`;
-
-                if (time === 5) updateUI(0xffff00, "WARNING", "LOW POWER");
-                if (time === 3) {
-                    updateUI(0xff0000, "CRITICAL", "DISCHARGING");
-                    document.getElementById('ui-container').classList.add('flicker');
-                    if(beepSnd.buffer) beepSnd.play();
-                }
-                if (time <= 0) { clearInterval(count); location.reload(); }
-            }, 1000);
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            if(active && !transformed) hologram.position.y = 1.8 + Math.sin(Date.now()*0.003)*0.05;
-            renderer.render(scene, camera);
-        }
-        animate();
-    </script>
+    function animate() {
+        requestAnimationFrame(animate);
+        if(active && !transformed) hologram.position.y = 1.8 + Math.sin(Date.now()*0.003)*0.05;
+        renderer.render(scene, camera);
+    }
+    animate();
+</script>
 </body>
 </html>
