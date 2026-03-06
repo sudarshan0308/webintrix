@@ -1,48 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Webnitrix OS - Universal Master Control</title>
+    <title>Webintrix OS - Master Control</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', monospace; color: #0f0; user-select: none; }
-        #ui-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; transition: opacity 1s; }
+        body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', monospace; }
+        #ui-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; color: #0f0; }
         
-        /* Layout Container to prevent overlap */
-        .top-nav { 
-            position: absolute; top: 20px; left: 0; width: 100%; 
-            display: flex; justify-content: space-between; padding: 0 20px; box-sizing: border-box; 
+        /* Left Side Stats */
+        .stats { position: absolute; top: 20px; left: 20px; text-shadow: 0 0 10px #0f0; }
+        
+        /* Right Side Creator Info - Fixed and Styled */
+        #creator-info { 
+            position: absolute; 
+            top: 20px; 
+            right: 20px; 
+            text-align: right; 
+            border-right: 3px solid #0f0; 
+            padding-right: 15px; 
+            text-shadow: 0 0 8px #0f0;
+            line-height: 1.2;
         }
+        #creator-info h2 { margin: 5px 0; font-size: 1.2rem; }
+        #creator-info p { margin: 2px 0; font-size: 0.8rem; letter-spacing: 1px; }
 
-        .stats { text-shadow: 0 0 10px #0f0; pointer-events: none; }
-        
-        #right-panel { 
-            text-align: right; border-right: 3px solid #0f0; padding-right: 15px; 
-            text-shadow: 0 0 8px #0f0; width: auto; min-width: 250px; pointer-events: none;
-        }
-        #right-panel h2 { margin: 5px 0; font-size: 1.1rem; white-space: nowrap; }
-
-        /* Tactical HUD Graphs */
-        .stat-bar-container { width: 100%; height: 8px; background: rgba(0, 255, 0, 0.1); border: 1px solid #0f0; margin: 5px 0 10px auto; overflow: hidden; }
-        .stat-fill { height: 100%; background: #0f0; width: 0%; transition: width 0.4s ease-out; }
-        .label { font-size: 0.7rem; letter-spacing: 1px; margin-top: 5px; font-weight: bold; }
-
-        /* Bottom Centered UI */
-        #alien-label { position: absolute; bottom: 120px; left: 0; width: 100%; text-align: center; font-size: 3.5rem; font-weight: bold; opacity: 0; transition: opacity 0.5s; }
-        #timer-label { position: absolute; bottom: 50px; left: 0; width: 100%; text-align: center; font-size: 1.2rem; opacity: 0; }
-        #prompt { position: absolute; bottom: 15%; left: 0; width: 100%; text-align: center; letter-spacing: 5px; animation: breathe 2s infinite; font-weight: bold; }
-        
+        #alien-label { position: absolute; bottom: 80px; width: 100%; text-align: center; font-size: 3rem; font-weight: bold; opacity: 0; transition: opacity 0.5s; }
+        #timer-label { position: absolute; bottom: 30px; width: 100%; text-align: center; font-size: 1.2rem; opacity: 0; }
         #flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; opacity: 0; z-index: 100; pointer-events: none; }
-
-        /* --- MOBILE OVERLAP REPAIR --- */
-        @media (max-width: 700px) {
-            .top-nav { flex-direction: column; align-items: flex-start; gap: 15px; top: 10px; }
-            #right-panel { text-align: left; border-right: none; border-left: 3px solid #0f0; padding-right: 0; padding-left: 15px; min-width: 150px; }
-            #alien-label { font-size: 2.2rem; bottom: 160px; }
-            #prompt { font-size: 0.8rem; bottom: 25%; }
-            .stat-bar-container { width: 130px; margin: 5px 0 10px 0; }
-        }
-
+        
+        /* Lowered Prompt */
+        #prompt { position: absolute; bottom: 10%; width: 100%; text-align: center; letter-spacing: 5px; animation: breathe 2s infinite; font-weight: bold; text-shadow: 0 0 5px #0f0; }
+        
         @keyframes breathe { 0%, 100% { opacity: 0.2; } 50% { opacity: 0.8; } }
         .flicker { animation: flash-red 0.15s infinite; }
         @keyframes flash-red { 0% { opacity: 1; } 50% { opacity: 0.5; } }
@@ -51,33 +39,19 @@
 <body>
     <div id="flash"></div>
     <div id="ui-container">
-        <div class="top-nav">
-            <div class="stats">
-                <h2 id="status-display">SYSTEM: STANDBY</h2>
-                <p id="mode-display">MODE: IDLE</p>
-            </div>
-
-            <div id="right-panel">
-                <div id="architect-view">
-                    <p>PROJECT: WEBNITRIX</p>
-                    <h2>ARCHITECT: SUDARSHANA MURTHY</h2>
-                    <p>OS VER: 3.0.4.GOLDEN</p>
-                    <p>GALVANIC ENGINE</p>
-                </div>
-                <div id="tactical-view" style="display: none;">
-                    <p style="border-bottom: 1px solid #0f0; padding-bottom: 5px;">TACTICAL ANALYSIS</p>
-                    <div class="label">POWER LEVEL</div>
-                    <div class="stat-bar-container"><div id="bar-power" class="stat-fill"></div></div>
-                    <div class="label">FIGHT CAPACITY</div>
-                    <div class="stat-bar-container"><div id="bar-fight" class="stat-fill"></div></div>
-                    <div class="label">SPEED/AGILITY</div>
-                    <div class="stat-bar-container"><div id="bar-speed" class="stat-fill"></div></div>
-                    <p id="alien-class" style="font-size: 0.65rem; margin-top: 10px;"></p>
-                </div>
-            </div>
+        <div class="stats">
+            <h2 id="status-display">SYSTEM: STANDBY</h2>
+            <p id="mode-display">MODE: IDLE</p>
         </div>
 
-        <div id="prompt">TAP CORE TO INITIALIZE</div>
+        <div id="creator-info">
+            <p>PROJECT: WEBNITRIX</p>
+            <h2>ARCHITECT: SUDARSHANA MURTHY</h2>
+            <p>OS VER: 3.0.4.GOLDEN</p>
+            <p>GALVANIC TECHNOLOGY ENGINE</p>
+        </div>
+
+        <div id="prompt">INTERACT TO ACTIVATE</div>
         <div id="alien-label">HEATBLAST</div>
         <div id="timer-label">DNA STABILITY: 100%</div>
     </div>
@@ -87,183 +61,169 @@
     </script>
 
     <script type="module">
-        import * as THREE from 'three';
-        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-        let active = false, transformed = false, index = 0, scrollLock = false;
-        let hologram, dial, openSnd, transSnd, beepSnd;
-        let touchStartY = 0;
+    let active = false, transformed = false, index = 0;
+    let hologram, dial, openSnd, transSnd, beepSnd;
 
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-        scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-        const pL = new THREE.PointLight(0xffffff, 60); pL.position.set(2, 5, 2); scene.add(pL);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+    const pL = new THREE.PointLight(0xffffff, 60); pL.position.set(2, 5, 2); scene.add(pL);
 
-        const listener = new THREE.AudioListener(); camera.add(listener);
-        const loader = new THREE.AudioLoader();
-        openSnd = new THREE.Audio(listener); transSnd = new THREE.Audio(listener); beepSnd = new THREE.Audio(listener);
+    const listener = new THREE.AudioListener(); camera.add(listener);
+    const loader = new THREE.AudioLoader();
+    openSnd = new THREE.Audio(listener); transSnd = new THREE.Audio(listener); beepSnd = new THREE.Audio(listener);
 
-        loader.load('./static/sounds/opening.mp3', b => openSnd.setBuffer(b));
-        loader.load('./static/sounds/transform.mp3', b => transSnd.setBuffer(b));
-        loader.load('./static/sounds/timer.mp3', b => beepSnd.setBuffer(b));
+    loader.load('./static/sounds/opening.mp3', b => openSnd.setBuffer(b));
+    loader.load('./static/sounds/transform.mp3', b => transSnd.setBuffer(b));
+    loader.load('./static/sounds/timer.mp3', b => beepSnd.setBuffer(b));
 
-        const alienStats = [
-            { n: "HEATBLAST",    p: 85,  f: 90,  s: 60,  c: "PYRONITE",      t: './static/models/alien1.png' },
-            { n: "DIAMONDHEAD",  p: 95,  f: 85,  s: 40,  c: "PETROSAPIEN",   t: './static/models/alien2.png' },
-            { n: "FOUR ARMS",    p: 100, f: 95,  s: 30,  c: "TETRAMAND",     t: './static/models/alien3.png' },
-            { n: "STINKFLY",     p: 60,  f: 70,  s: 85,  c: "LEPIDOPTERRAN", t: './static/models/alien4.png' },
-            { n: "GREY MATTER",  p: 15,  f: 20,  s: 70,  c: "GALVAN",        t: './static/models/alien5.png' },
-            { n: "XLR8",         p: 55,  f: 65,  s: 100, c: "KINECELERAN",   t: './static/models/alien6.png' },
-            { n: "WILDMUTT",     p: 75,  f: 90,  s: 85,  c: "VULPIMANCER",   t: './static/models/alien7.png' },
-            { n: "UPGRADE",      p: 70,  f: 50,  s: 65,  c: "GALVANIC MECH", t: './static/models/alien8.png' },
-            { n: "VERTEBRATE",   p: 65,  f: 80,  s: 90,  c: "VULPIMANCER-V", t: './static/models/alien9.png' },
-            { n: "GHOSTFREAK",   p: 65,  f: 75,  s: 90,  c: "ECTONURITE",    t: './static/models/alien10.png' }
-        ];
+    // SOUND: MECHANICAL SCROLL
+    function playMechanicalClick() {
+    const ctx = listener.context;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
 
-        function playSoftBloop() {
-            const ctx = listener.context;
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(850, ctx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(450, ctx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.1, ctx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.1);
-            osc.connect(gain); gain.connect(ctx.destination);
-            osc.start(); osc.stop(ctx.currentTime + 0.1);
+    // 1. SINE WAVE: The smoothest sound possible (no sharp edges)
+    osc.type = 'sine';
+
+    // 2. SOFT FILTER: Removes the "bullet" sharpness
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(2000, ctx.currentTime);
+
+    // 3. GLIDE: A gentle "bloop" instead of a "crack"
+    // Starts at 800Hz (musical) and drops to 400Hz
+    osc.frequency.setValueAtTime(800, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(400, ctx.currentTime + 0.1);
+
+    // 4. SOFT ENVELOPE: Fades out smoothly
+    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.1);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start();
+    osc.stop(ctx.currentTime + 0.1);
+}
+
+    // NEW: SYNTHETIC DISCHARGE PULSE
+    // This creates that "Emergency Power" warble
+    function playDischargeWarning() {
+        const ctx = listener.context;
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        osc.type = 'square'; // Sharper, more "electric" sound
+        osc.frequency.setValueAtTime(100, ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(200, ctx.currentTime + 0.2);
+        
+        gain.gain.setValueAtTime(0.1, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+        
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(); osc.stop(ctx.currentTime + 0.3);
+    }
+
+    const texLoader = new THREE.TextureLoader();
+    const aliens = [
+        { n: "HEATBLAST", t: texLoader.load('./static/models/alien1.png') },
+        { n: "DIAMONDHEAD", t: texLoader.load('./static/models/alien2.png') },
+        { n: "XLR8", t: texLoader.load('./static/models/alien6.png') },
+        { n: "FOUR ARMS", t: texLoader.load('./static/models/alien3.png') },
+        { n: "GREY MATTER", t: texLoader.load('./static/models/alien5.png') }
+    ];
+
+    hologram = new THREE.Sprite(new THREE.SpriteMaterial({ map: aliens[0].t, color: 0x00ff00, transparent: true, opacity: 0 }));
+    hologram.scale.set(1.6, 1.6, 1); hologram.position.y = 1.8; scene.add(hologram);
+
+    new GLTFLoader().load('./static/models/omnitrix.glb', (g) => {
+        scene.add(g.scene);
+        g.scene.traverse(n => { if(n.name.toLowerCase().includes("dial")) dial = n; });
+        camera.position.set(0, 2, 5); camera.lookAt(0,0,0);
+    });
+
+    function updateUI(color, status, mode) {
+        const c = "#" + color.toString(16).padStart(6, '0');
+        document.getElementById('ui-container').style.color = c;
+        document.getElementById('status-display').innerText = `SYSTEM: ${status}`;
+        document.getElementById('mode-display').innerText = `MODE: ${mode}`;
+        hologram.material.color.setHex(color);
+        document.getElementById('creator-info').style.color = c;
+        document.getElementById('creator-info').style.borderColor = c;
+    }
+
+    window.addEventListener('click', () => {
+        if (transformed) return;
+        if (!active) {
+            active = true;
+            if(openSnd.buffer) openSnd.play();
+            updateUI(0x00ff00, "ACTIVE", "SELECTION");
+            document.getElementById('alien-label').style.opacity = 1;
+            document.getElementById('prompt').style.display = "none";
+            hologram.material.opacity = 0.8;
+        } else {
+            transformed = true;
+            const flash = document.getElementById('flash');
+            flash.style.opacity = 1;
+            if(transSnd.buffer) transSnd.play();
+            setTimeout(() => { flash.style.opacity = 0; startTimer(); }, 150);
         }
+    });
 
-        function playTotalDischarge() {
-            const ctx = listener.context;
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(150, ctx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(20, ctx.currentTime + 1.2);
-            gain.gain.setValueAtTime(0.2, ctx.currentTime);
-            gain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.2);
-            osc.connect(gain); gain.connect(ctx.destination);
-            osc.start(); osc.stop(ctx.currentTime + 1.2);
+    window.addEventListener('wheel', () => {
+        if (active && !transformed) {
+            playMechanicalClick();
+            index = (index + 1) % aliens.length;
+            hologram.material.map = aliens[index].t;
+            document.getElementById('alien-label').innerText = aliens[index].n;
+            if(dial) dial.rotation.y += 0.4;
         }
+    });
 
-        const texLoader = new THREE.TextureLoader();
-        hologram = new THREE.Sprite(new THREE.SpriteMaterial({ 
-            map: texLoader.load(alienStats[0].t), color: 0x00ff00, transparent: true, opacity: 0 
-        }));
-        hologram.scale.set(1.6, 1.6, 1); hologram.position.y = 1.8; scene.add(hologram);
+    function startTimer() {
+        let time = 10;
+        document.getElementById('timer-label').style.opacity = 1;
+        updateUI(0x00ff00, "ACTIVE", "TRANSFORMED");
 
-        new GLTFLoader().load('./static/models/omnitrix.glb', (g) => {
-            scene.add(g.scene);
-            g.scene.traverse(n => { if(n.name.toLowerCase().includes("dial")) dial = n; });
-            camera.position.set(0, 2, 5); camera.lookAt(0,0,0);
-        });
+        const count = setInterval(() => {
+            time--;
+            document.getElementById('timer-label').innerText = `DNA STABILITY: ${time * 10}%`;
 
-        function updateTacticalHUD(idx) {
-            const stat = alienStats[idx];
-            document.getElementById('bar-power').style.width = stat.p + "%";
-            document.getElementById('bar-fight').style.width = stat.f + "%";
-            document.getElementById('bar-speed').style.width = stat.s + "%";
-            document.getElementById('alien-class').innerText = `CLASS: ${stat.c}`;
-        }
-
-        function updateUI(color, status, mode) {
-            const c = "#" + color.toString(16).padStart(6, '0');
-            document.getElementById('ui-container').style.color = c;
-            document.getElementById('status-display').innerText = `SYSTEM: ${status}`;
-            document.getElementById('mode-display').innerText = `MODE: ${mode}`;
-            hologram.material.color.setHex(color);
-            document.querySelectorAll('.stat-fill, .stat-bar-container').forEach(el => el.style.borderColor = c);
-            document.querySelectorAll('.stat-fill').forEach(el => el.style.background = c);
-            document.getElementById('right-panel').style.borderColor = c;
-        }
-
-        function changeAlien(dir) {
-            if (scrollLock) return;
-            scrollLock = true;
+            if (time === 5) updateUI(0xffff00, "WARNING", "LOW POWER");
             
-            playSoftBloop();
-            if (dir === 'next') index = (index + 1) % alienStats.length;
-            else index = (index - 1 + alienStats.length) % alienStats.length;
-
-            hologram.material.map = texLoader.load(alienStats[index].t);
-            document.getElementById('alien-label').innerText = alienStats[index].n;
-            updateTacticalHUD(index);
-            if(dial) dial.rotation.y += (dir === 'next' ? 0.4 : -0.4);
-
-            setTimeout(() => { scrollLock = false; }, 300); // Prevents skipping aliens
-        }
-
-        window.addEventListener('mousedown', () => {
-            if (transformed) return;
-            if (!active) {
-                active = true;
-                if(openSnd.buffer) openSnd.play();
-                updateUI(0x00ff00, "ACTIVE", "SELECTION");
-                document.getElementById('architect-view').style.display = 'none';
-                document.getElementById('tactical-view').style.display = 'block';
-                updateTacticalHUD(index);
-                document.getElementById('alien-label').style.opacity = 1;
-                document.getElementById('prompt').style.display = "none";
-                hologram.material.opacity = 0.8;
-            } else {
-                transformed = true;
-                const f = document.getElementById('flash'); f.style.opacity = 1;
-                if(transSnd.buffer) transSnd.play();
-                setTimeout(() => { f.style.opacity = 0; startTimer(); }, 150);
+            if (time <= 3 && time > 0) {
+                updateUI(0xff0000, "CRITICAL", "DISCHARGING");
+                document.getElementById('ui-container').classList.add('flicker');
+                
+                // Play the built-in timer sound
+                if(beepSnd.buffer && !beepSnd.isPlaying) beepSnd.play();
+                // Layer it with the synthetic mechanical discharge pulse
+                playDischargeWarning();
             }
-        });
 
-        window.addEventListener('wheel', (e) => {
-            if (active && !transformed) changeAlien(e.deltaY > 0 ? 'next' : 'prev');
-        });
-
-        window.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; }, { passive: true });
-        window.addEventListener('touchend', (e) => {
-            if (active && !transformed) {
-                let diff = touchStartY - e.changedTouches[0].clientY;
-                if (Math.abs(diff) > 40) changeAlien(diff > 0 ? 'next' : 'prev');
+            if (time <= 0) { 
+                clearInterval(count); 
+                updateUI(0xff0000, "SHUTDOWN", "RECHARGING");
+                setTimeout(() => location.reload(), 1200); 
             }
-        }, { passive: true });
+        }, 1000);
+    }
 
-        function startTimer() {
-            let time = 10;
-            document.getElementById('timer-label').style.opacity = 1;
-            updateUI(0x00ff00, "ACTIVE", "TRANSFORMED");
-
-            const count = setInterval(() => {
-                time--;
-                document.getElementById('timer-label').innerText = `DNA STABILITY: ${time * 10}%`;
-                if (time === 5) updateUI(0xffff00, "WARNING", "LOW POWER");
-                if (time === 3) {
-                    updateUI(0xff0000, "CRITICAL", "DISCHARGING");
-                    document.getElementById('ui-container').classList.add('flicker');
-                    if(beepSnd.buffer) beepSnd.play();
-                }
-                if (time <= 0) { 
-                    clearInterval(count); 
-                    playTotalDischarge();
-                    document.getElementById('ui-container').style.opacity = '0';
-                    setTimeout(() => location.reload(), 2000); 
-                }
-            }, 1000);
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            if(active && !transformed) hologram.position.y = 1.8 + Math.sin(Date.now()*0.003)*0.05;
-            renderer.render(scene, camera);
-        }
-        animate();
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-    </script>
+    function animate() {
+        requestAnimationFrame(animate);
+        if(active && !transformed) hologram.position.y = 1.8 + Math.sin(Date.now()*0.003)*0.05;
+        renderer.render(scene, camera);
+    }
+    animate();
+</script>
 </body>
 </html>
