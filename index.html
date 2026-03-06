@@ -2,16 +2,16 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Webnitrix OS - Master Control</title>
+    <title>Webnitrix OS - Universal Master Control</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', monospace; color: #0f0; user-select: none; }
         #ui-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; transition: opacity 1s; }
         
-        /* Left Stats */
+        /* Top Left System Stats */
         .stats { position: absolute; top: 20px; left: 20px; text-shadow: 0 0 10px #0f0; }
         
-        /* Right Panel - Architect & Tactical */
+        /* Top Right Panel - Architect & Tactical */
         #right-panel { 
             position: absolute; top: 20px; right: 20px; text-align: right; 
             border-right: 3px solid #0f0; padding-right: 15px; text-shadow: 0 0 8px #0f0;
@@ -24,24 +24,30 @@
         .stat-fill { height: 100%; background: #0f0; width: 0%; transition: width 0.4s ease-out; }
         .label { font-size: 0.7rem; letter-spacing: 1px; margin-top: 5px; font-weight: bold; }
 
-        /* Center/Bottom UI */
-        #alien-label { position: absolute; bottom: 120px; left: 0; width: 100%; text-align: center; font-size: 3.5rem; font-weight: bold; opacity: 0; transition: opacity 0.5s; }
+        /* Bottom Centered UI */
+        #alien-label { position: absolute; bottom: 130px; left: 0; width: 100%; text-align: center; font-size: 3.5rem; font-weight: bold; opacity: 0; transition: opacity 0.5s; }
         #timer-label { position: absolute; bottom: 50px; left: 0; width: 100%; text-align: center; font-size: 1.2rem; opacity: 0; }
         
-        /* Interaction Prompts */
-        #prompt { position: absolute; bottom: 15%; left: 0; width: 100%; text-align: center; letter-spacing: 5px; animation: breathe 2s infinite; font-weight: bold; }
-        #scroll-instruction { position: absolute; bottom: 11%; left: 0; width: 100%; text-align: center; font-size: 0.8rem; letter-spacing: 3px; opacity: 0.6; animation: breathe 2s infinite; pointer-events: none; }
+        /* STACKED INSTRUCTION GROUP */
+        #instruction-group {
+            position: absolute; bottom: 12%; left: 0; width: 100%;
+            display: flex; flex-direction: column; align-items: center;
+            gap: 12px; pointer-events: none; animation: breathe 2s infinite;
+        }
+        #prompt { font-size: 1.2rem; letter-spacing: 5px; font-weight: bold; }
+        #scroll-instruction { font-size: 0.8rem; letter-spacing: 3px; opacity: 0.7; }
         
         #flash { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; opacity: 0; z-index: 100; pointer-events: none; }
 
-        /* Mobile Responsive Adjustments */
+        /* MOBILE RESPONSIVE TWEAKS */
         @media (max-width: 600px) {
-            #alien-label { font-size: 2.2rem; bottom: 140px; }
+            #alien-label { font-size: 2.2rem; bottom: 150px; }
             #right-panel { min-width: 180px; font-size: 0.75rem; top: 10px; right: 10px; }
             #right-panel h2 { font-size: 0.9rem; }
             .stats h2 { font-size: 1.1rem; }
-            #prompt { font-size: 0.8rem; bottom: 22%; }
-            #scroll-instruction { font-size: 0.6rem; bottom: 18%; }
+            #instruction-group { bottom: 20%; gap: 8px; }
+            #prompt { font-size: 0.9rem; letter-spacing: 2px; }
+            #scroll-instruction { font-size: 0.6rem; letter-spacing: 1px; }
             .stat-bar-container { width: 130px; }
         }
 
@@ -77,8 +83,11 @@
             </div>
         </div>
 
-        <div id="prompt">TAP CORE TO INITIALIZE</div>
-        <div id="scroll-instruction">SCROLL UP / DOWN TO CYCLE DNA</div>
+        <div id="instruction-group">
+            <div id="prompt">TAP CORE TO INITIALIZE</div>
+            <div id="scroll-instruction">SCROLL UP / DOWN TO CYCLE DNA</div>
+        </div>
+
         <div id="alien-label">HEATBLAST</div>
         <div id="timer-label">DNA STABILITY: 100%</div>
     </div>
@@ -139,8 +148,7 @@
             const ctx = listener.context;
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(850, ctx.currentTime);
+            osc.type = 'sine'; osc.frequency.setValueAtTime(850, ctx.currentTime);
             osc.frequency.exponentialRampToValueAtTime(450, ctx.currentTime + 0.1);
             gain.gain.setValueAtTime(0.1, ctx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.1);
@@ -185,8 +193,7 @@
                 document.getElementById('tactical-view').style.display = 'block';
                 updateTacticalHUD(0);
                 document.getElementById('alien-label').style.opacity = 1;
-                document.getElementById('prompt').style.display = "none";
-                document.getElementById('scroll-instruction').style.display = "none";
+                document.getElementById('instruction-group').style.display = "none";
                 hologram.material.opacity = 0.8;
             } else {
                 transformed = true;
