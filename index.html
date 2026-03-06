@@ -2,53 +2,46 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Webnitrix OS - Universal Master</title>
+    <title>Webnitrix OS - Master Control</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #000; overflow: hidden; font-family: 'Courier New', monospace; color: #0f0; user-select: none; }
-        #ui-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; transition: opacity 1s; }
+        #ui-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
         
-        .stats { position: absolute; top: 15px; left: 15px; text-shadow: 0 0 10px #0f0; z-index: 20; }
+        /* Top Left Stats */
+        .stats { position: absolute; top: 20px; left: 20px; text-shadow: 0 0 10px #0f0; }
         
+        /* Top Right Panel */
         #right-panel { 
-            position: absolute; top: 15px; right: 15px; text-align: right; 
-            border-right: 3px solid #0f0; padding-right: 10px; text-shadow: 0 0 8px #0f0;
-            width: auto; z-index: 20;
+            position: absolute; top: 20px; right: 20px; text-align: right; 
+            border-right: 3px solid #0f0; padding-right: 15px; text-shadow: 0 0 8px #0f0;
         }
-        #right-panel h2 { margin: 3px 0; font-size: 1rem; white-space: nowrap; }
+        #right-panel h2 { margin: 5px 0; font-size: 1.1rem; white-space: nowrap; }
 
-        /* Tactical HUD Graphs */
-        .stat-bar-container { width: 150px; height: 6px; background: rgba(0, 255, 0, 0.1); border: 1px solid #0f0; margin: 4px 0 8px auto; overflow: hidden; }
+        /* Tactical HUD */
+        .stat-bar-container { width: 180px; height: 8px; background: rgba(0, 255, 0, 0.1); border: 1px solid #0f0; margin: 5px 0 10px auto; overflow: hidden; }
         .stat-fill { height: 100%; background: #0f0; width: 0%; transition: width 0.4s ease-out; }
-        .label { font-size: 0.6rem; letter-spacing: 1px; font-weight: bold; }
+        .label { font-size: 0.7rem; letter-spacing: 1px; font-weight: bold; }
 
-        /* Bottom Centered UI */
-        #alien-label { position: absolute; bottom: 140px; left: 0; width: 100%; text-align: center; font-size: 2.5rem; font-weight: bold; opacity: 0; transition: opacity 0.5s; }
-        #timer-label { position: absolute; bottom: 40px; left: 0; width: 100%; text-align: center; font-size: 1rem; opacity: 0; }
+        /* Bottom UI */
+        #alien-label { position: absolute; bottom: 150px; left: 0; width: 100%; text-align: center; font-size: 3rem; font-weight: bold; opacity: 0; transition: opacity 0.5s; }
+        #instruction-group { position: absolute; bottom: 10%; left: 0; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; animation: breathe 2s infinite; }
+        #timer-label { position: absolute; bottom: 40px; left: 0; width: 100%; text-align: center; font-size: 1.2rem; opacity: 0; }
         
-        #instruction-group {
-            position: absolute; bottom: 10%; left: 0; width: 100%;
-            display: flex; flex-direction: column; align-items: center;
-            gap: 8px; pointer-events: none; animation: breathe 2s infinite;
-        }
-        #prompt { font-size: 1rem; letter-spacing: 3px; font-weight: bold; }
-        #scroll-instruction { font-size: 0.7rem; letter-spacing: 2px; opacity: 0.7; }
-
-        /* --- MOBILE SCREEN FIX (PREVENTS OVERLAP) --- */
+        /* --- MOBILE REPAIR (No Overlap) --- */
         @media (max-width: 600px) {
-            .stats h2 { font-size: 0.9rem; }
-            .stats p { font-size: 0.7rem; }
-            #right-panel { top: auto; bottom: 15px; right: 15px; text-align: right; border-right: 2px solid #0f0; border-top: none; }
-            #right-panel p { font-size: 0.6rem; margin: 2px 0; }
+            .stats { top: 10px; left: 10px; }
+            .stats h2 { font-size: 1rem; }
+            /* Move Architect to bottom right to avoid overlap with System Standby */
+            #right-panel { top: auto; bottom: 80px; right: 10px; border-right: 2px solid #0f0; }
             #right-panel h2 { font-size: 0.8rem; }
-            #instruction-group { bottom: 22%; }
-            #alien-label { font-size: 2rem; bottom: 160px; }
-            .stat-bar-container { width: 100px; }
+            #right-panel p { font-size: 0.6rem; margin: 2px 0; }
+            .stat-bar-container { width: 110px; }
+            #alien-label { font-size: 2rem; bottom: 180px; }
+            #instruction-group { bottom: 25%; }
         }
 
-        @keyframes breathe { 0%, 100% { opacity: 0.2; } 50% { opacity: 0.8; } }
-        .flicker { animation: flash-red 0.15s infinite; }
-        @keyframes flash-red { 0% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes breathe { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.9; } }
     </style>
 </head>
 <body>
@@ -57,31 +50,25 @@
             <h2 id="status-display">SYSTEM: STANDBY</h2>
             <p id="mode-display">MODE: IDLE</p>
         </div>
-
         <div id="right-panel">
             <div id="architect-view">
                 <p>PROJECT: WEBNITRIX</p>
                 <h2>ARCHITECT: SUDARSHANA MURTHY</h2>
                 <p>OS VER: 3.0.4.GOLDEN</p>
-                <p>GALVANIC ENGINE</p>
             </div>
             <div id="tactical-view" style="display: none;">
-                <p style="border-bottom: 1px solid #0f0; padding-bottom: 3px; font-size: 0.7rem;">TACTICAL ANALYSIS</p>
+                <p style="border-bottom: 1px solid #0f0; font-size: 0.7rem;">TACTICAL DATA</p>
                 <div class="label">POWER</div>
                 <div class="stat-bar-container"><div id="bar-power" class="stat-fill"></div></div>
-                <div class="label">FIGHT</div>
-                <div class="stat-bar-container"><div id="bar-fight" class="stat-fill"></div></div>
                 <div class="label">SPEED</div>
                 <div class="stat-bar-container"><div id="bar-speed" class="stat-fill"></div></div>
-                <p id="alien-class" style="font-size: 0.6rem; margin-top: 5px;"></p>
+                <p id="alien-class" style="font-size: 0.6rem;"></p>
             </div>
         </div>
-
         <div id="instruction-group">
-            <div id="prompt">TAP CORE TO INITIALIZE</div>
-            <div id="scroll-instruction">SWIPE UP/DOWN TO CYCLE DNA</div>
+            <div style="font-weight:bold; letter-spacing:3px;">TAP CORE TO START</div>
+            <div style="font-size:0.7rem; opacity:0.7;">SWIPE OR SCROLL TO CYCLE</div>
         </div>
-
         <div id="alien-label">HEATBLAST</div>
         <div id="timer-label">DNA STABILITY: 100%</div>
     </div>
@@ -94,7 +81,7 @@
         import * as THREE from 'three';
         import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-        let active = false, transformed = false, index = 0;
+        let active = false, transformed = false, index = 0, isScrolling = false;
         let hologram, dial, touchStartY = 0;
 
         const scene = new THREE.Scene();
@@ -103,20 +90,20 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-        const pL = new THREE.PointLight(0xffffff, 60); pL.position.set(2, 5, 2); scene.add(pL);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+        const pL = new THREE.PointLight(0xffffff, 50); pL.position.set(2, 5, 2); scene.add(pL);
 
         const alienStats = [
-            { n: "HEATBLAST",    p: 85,  f: 90,  s: 60,  c: "PYRONITE",      t: './static/models/alien1.png' },
-            { n: "DIAMONDHEAD",  p: 95,  f: 85,  s: 40,  c: "PETROSAPIEN",   t: './static/models/alien2.png' },
-            { n: "FOUR ARMS",    p: 100, f: 95,  s: 30,  c: "TETRAMAND",     t: './static/models/alien3.png' },
-            { n: "STINKFLY",     p: 60,  f: 70,  s: 85,  c: "LEPIDOPTERRAN", t: './static/models/alien4.png' },
-            { n: "GREY MATTER",  p: 15,  f: 20,  s: 70,  c: "GALVAN",        t: './static/models/alien5.png' },
-            { n: "XLR8",         p: 55,  f: 65,  s: 100, c: "KINECELERAN",   t: './static/models/alien6.png' },
-            { n: "WILDMUTT",     p: 75,  f: 90,  s: 85,  c: "VULPIMANCER",   t: './static/models/alien7.png' },
-            { n: "UPGRADE",      p: 70,  f: 50,  s: 65,  c: "GALVANIC MECH", t: './static/models/alien8.png' },
-            { n: "VERTEBRATE",   p: 65,  f: 80,  s: 90,  c: "VULPIMANCER-V", t: './static/models/alien9.png' },
-            { n: "GHOSTFREAK",   p: 65,  f: 75,  s: 90,  c: "ECTONURITE",    t: './static/models/alien10.png' }
+            { n: "HEATBLAST", p: 85, s: 60, c: "PYRONITE", t: './static/models/alien1.png' },
+            { n: "DIAMONDHEAD", p: 95, s: 40, c: "PETROSAPIEN", t: './static/models/alien2.png' },
+            { n: "FOUR ARMS", p: 100, s: 30, c: "TETRAMAND", t: './static/models/alien3.png' },
+            { n: "STINKFLY", p: 60, s: 85, c: "LEPIDOPTERRAN", t: './static/models/alien4.png' },
+            { n: "GREY MATTER", p: 15, s: 70, c: "GALVAN", t: './static/models/alien5.png' },
+            { n: "XLR8", p: 55, s: 100, c: "KINECELERAN", t: './static/models/alien6.png' },
+            { n: "WILDMUTT", p: 75, s: 85, c: "VULPIMANCER", t: './static/models/alien7.png' },
+            { n: "UPGRADE", p: 70, s: 65, c: "MECHAMORPH", t: './static/models/alien8.png' },
+            { n: "VERTEBRATE", p: 65, s: 90, c: "VULPIMANCER-V", t: './static/models/alien9.png' },
+            { n: "GHOSTFREAK", p: 65, s: 90, c: "ECTONURITE", t: './static/models/alien10.png' }
         ];
 
         const texLoader = new THREE.TextureLoader();
@@ -130,73 +117,72 @@
         });
 
         function changeAlien(dir) {
+            if (isScrolling) return; // Prevent skipping
+            isScrolling = true;
+            
             if (dir === 'next') index = (index + 1) % alienStats.length;
             else index = (index - 1 + alienStats.length) % alienStats.length;
+
             hologram.material.map = texLoader.load(alienStats[index].t);
             document.getElementById('alien-label').innerText = alienStats[index].n;
-            updateTacticalHUD(index);
+            document.getElementById('bar-power').style.width = alienStats[index].p + "%";
+            document.getElementById('bar-speed').style.width = alienStats[index].s + "%";
+            document.getElementById('alien-class').innerText = `CLASS: ${alienStats[index].c}`;
             if(dial) dial.rotation.y += (dir === 'next' ? 0.4 : -0.4);
+
+            setTimeout(() => { isScrolling = false; }, 200); // 200ms delay to stop skipping
         }
 
-        function updateTacticalHUD(idx) {
-            const stat = alienStats[idx];
-            document.getElementById('bar-power').style.width = stat.p + "%";
-            document.getElementById('bar-fight').style.width = stat.f + "%";
-            document.getElementById('bar-speed').style.width = stat.s + "%";
-            document.getElementById('alien-class').innerText = `CLASS: ${stat.c}`;
-        }
+        // LAPTOP SCROLL (With Debounce)
+        window.addEventListener('wheel', (e) => { 
+            if (active && !transformed) changeAlien(e.deltaY > 0 ? 'next' : 'prev'); 
+        }, { passive: true });
 
-        function updateUI(color, status, mode) {
-            const c = "#" + color.toString(16).padStart(6, '0');
-            document.getElementById('ui-container').style.color = c;
-            document.getElementById('status-display').innerText = `SYSTEM: ${status}`;
-            document.getElementById('mode-display').innerText = `MODE: ${mode}`;
-            hologram.material.color.setHex(color);
-        }
-
-        // UNIFIED TOUCH & CLICK
-        window.addEventListener('mousedown', () => { handleActivation(); });
+        // MOBILE TOUCH (Unified Swipe & Click)
         window.addEventListener('touchstart', (e) => { 
             touchStartY = e.touches[0].clientY; 
-            if(!active) handleActivation(); 
         }, { passive: true });
 
-        function handleActivation() {
-            if (transformed) return;
-            if (!active) {
-                active = true;
-                updateUI(0x00ff00, "ACTIVE", "SELECTION");
-                document.getElementById('architect-view').style.display = 'none';
-                document.getElementById('tactical-view').style.display = 'block';
-                updateTacticalHUD(0);
-                document.getElementById('alien-label').style.opacity = 1;
-                document.getElementById('instruction-group').style.display = "none";
-                hologram.material.opacity = 0.8;
-            } else {
-                transformed = true;
-                startTimer();
-            }
-        }
-
-        // SCROLL & SWIPE
-        window.addEventListener('wheel', (e) => { if (active && !transformed) changeAlien(e.deltaY > 0 ? 'next' : 'prev'); });
         window.addEventListener('touchend', (e) => {
-            if (active && !transformed) {
-                let diff = touchStartY - e.changedTouches[0].clientY;
-                if (Math.abs(diff) > 40) changeAlien(diff > 0 ? 'next' : 'prev');
+            let touchEndY = e.changedTouches[0].clientY;
+            let diff = touchStartY - touchEndY;
+
+            if (Math.abs(diff) < 10) { // It's a Tap
+                if (transformed) return;
+                if (!active) {
+                    active = true;
+                    document.getElementById('status-display').innerText = "SYSTEM: ACTIVE";
+                    document.getElementById('architect-view').style.display = 'none';
+                    document.getElementById('tactical-view').style.display = 'block';
+                    document.getElementById('alien-label').style.opacity = 1;
+                    document.getElementById('instruction-group').style.display = "none";
+                    hologram.material.opacity = 0.8;
+                } else {
+                    transformed = true;
+                    document.getElementById('timer-label').style.opacity = 1;
+                }
+            } else if (active && !transformed && Math.abs(diff) > 40) { // It's a Swipe
+                changeAlien(diff > 0 ? 'next' : 'prev');
             }
         }, { passive: true });
 
-        function startTimer() {
-            let time = 10;
-            document.getElementById('timer-label').style.opacity = 1;
-            updateUI(0x00ff00, "ACTIVE", "TRANSFORMED");
-            const count = setInterval(() => {
-                time--;
-                document.getElementById('timer-label').innerText = `DNA STABILITY: ${time * 10}%`;
-                if (time <= 0) { clearInterval(count); location.reload(); }
-            }, 1000);
-        }
+        // Desktop Click
+        window.addEventListener('mousedown', () => {
+            if (window.innerWidth > 600) { // Only trigger on desktop click
+                if (!active) {
+                    active = true;
+                    document.getElementById('status-display').innerText = "SYSTEM: ACTIVE";
+                    document.getElementById('architect-view').style.display = 'none';
+                    document.getElementById('tactical-view').style.display = 'block';
+                    document.getElementById('alien-label').style.opacity = 1;
+                    document.getElementById('instruction-group').style.display = "none";
+                    hologram.material.opacity = 0.8;
+                } else if (!transformed) {
+                    transformed = true;
+                    document.getElementById('timer-label').style.opacity = 1;
+                }
+            }
+        });
 
         function animate() {
             requestAnimationFrame(animate);
@@ -204,10 +190,6 @@
             renderer.render(scene, camera);
         }
         animate();
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
     </script>
 </body>
 </html>
