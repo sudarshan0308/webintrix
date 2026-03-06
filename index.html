@@ -75,105 +75,128 @@
     </script>
 
     <script type="module">
-        import * as THREE from 'three';
-        import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-        let active = false, transformed = false, index = 0, scrollLock = false;
-        let hologram, dial, touchStartY = 0;
+    let active = false, transformed = false, index = 0, scrollLock = false;
+    let hologram, dial, touchStartY = 0;
 
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
 
-        scene.add(new THREE.AmbientLight(0xffffff, 0.9));
-        const pL = new THREE.PointLight(0xffffff, 50); pL.position.set(2, 5, 2); scene.add(pL);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+    const pL = new THREE.PointLight(0xffffff, 50); pL.position.set(2, 5, 2); scene.add(pL);
 
-        const alienStats = [
-            { n: "HEATBLAST", p: 85, s: 60, t: './static/models/alien1.png' },
-            { n: "DIAMONDHEAD", p: 95, s: 40, t: './static/models/alien2.png' },
-            { n: "FOUR ARMS", p: 100, s: 30, t: './static/models/alien3.png' },
-            { n: "STINKFLY", p: 60, s: 85, t: './static/models/alien4.png' },
-            { n: "GREY MATTER", p: 15, s: 70, t: './static/models/alien5.png' },
-            { n: "XLR8", p: 55, s: 100, t: './static/models/alien6.png' },
-            { n: "WILDMUTT", p: 75, s: 85, t: './static/models/alien7.png' },
-            { n: "UPGRADE", p: 70, s: 65, t: './static/models/alien8.png' },
-            { n: "VERTEBRATE", p: 65, s: 90, t: './static/models/alien9.png' },
-            { n: "GHOSTFREAK", p: 65, s: 90, t: './static/models/alien10.png' }
-        ];
+    // 10 ALIENS - ENSURE THESE FILES EXIST IN YOUR /static/models/ FOLDER
+    const alienStats = [
+        { n: "HEATBLAST", p: 85, s: 60, t: './static/models/alien1.png' },
+        { n: "DIAMONDHEAD", p: 95, s: 40, t: './static/models/alien2.png' },
+        { n: "FOUR ARMS", p: 100, s: 30, t: './static/models/alien3.png' },
+        { n: "STINKFLY", p: 60, s: 85, t: './static/models/alien4.png' },
+        { n: "GREY MATTER", p: 15, s: 70, t: './static/models/alien5.png' },
+        { n: "XLR8", p: 55, s: 100, t: './static/models/alien6.png' },
+        { n: "WILDMUTT", p: 75, s: 85, t: './static/models/alien7.png' },
+        { n: "UPGRADE", p: 70, s: 65, t: './static/models/alien8.png' },
+        { n: "VERTEBRATE", p: 65, s: 90, t: './static/models/alien9.png' },
+        { n: "GHOSTFREAK", p: 65, s: 90, t: './static/models/alien10.png' }
+    ];
 
-        const texLoader = new THREE.TextureLoader();
-        hologram = new THREE.Sprite(new THREE.SpriteMaterial({ map: texLoader.load(alienStats[0].t), color: 0x00ff00, transparent: true, opacity: 0 }));
-        hologram.scale.set(1.6, 1.6, 1); hologram.position.y = 1.8; scene.add(hologram);
+    const texLoader = new THREE.TextureLoader();
+    
+    // Initial Load
+    hologram = new THREE.Sprite(new THREE.SpriteMaterial({ 
+        map: texLoader.load(alienStats[0].t), 
+        color: 0x00ff00, 
+        transparent: true, 
+        opacity: 0 
+    }));
+    hologram.scale.set(1.6, 1.6, 1); 
+    hologram.position.y = 1.8; 
+    scene.add(hologram);
 
-        new GLTFLoader().load('./static/models/omnitrix.glb', (g) => {
-            scene.add(g.scene);
-            g.scene.traverse(n => { if(n.name.toLowerCase().includes("dial")) dial = n; });
-            camera.position.set(0, 2, 5); camera.lookAt(0,0,0);
-        });
+    new GLTFLoader().load('./static/models/omnitrix.glb', (g) => {
+        scene.add(g.scene);
+        g.scene.traverse(n => { if(n.name.toLowerCase().includes("dial")) dial = n; });
+        camera.position.set(0, 2, 5); camera.lookAt(0,0,0);
+    });
 
-        function changeAlien(dir) {
-            if (scrollLock) return;
-            scrollLock = true;
-            
-            if (dir === 'next') index = (index + 1) % alienStats.length;
-            else index = (index - 1 + alienStats.length) % alienStats.length;
+    function changeAlien(dir) {
+        if (scrollLock) return;
+        scrollLock = true;
+        
+        if (dir === 'next') index = (index + 1) % alienStats.length;
+        else index = (index - 1 + alienStats.length) % alienStats.length;
 
-            hologram.material.map = texLoader.load(alienStats[index].t);
-            document.getElementById('alien-label').innerText = alienStats[index].n;
-            document.getElementById('bar-power').style.width = alienStats[index].p + "%";
-            document.getElementById('bar-speed').style.width = alienStats[index].s + "%";
-            if(dial) dial.rotation.y += (dir === 'next' ? 0.4 : -0.4);
+        // DEBUG LOG: Open your browser console (F12) to see this!
+        console.log(`Switched to: ${alienStats[index].n} (Index: ${index}) Path: ${alienStats[index].t}`);
 
-            setTimeout(() => { scrollLock = false; }, 300); // Prevents skipping aliens
+        const newTexture = texLoader.load(alienStats[index].t, 
+            undefined, 
+            undefined, 
+            (err) => console.error(`FAILED TO LOAD: ${alienStats[index].t}. Check if file exists!`)
+        );
+
+        hologram.material.map = newTexture;
+        document.getElementById('alien-label').innerText = alienStats[index].n;
+        
+        // Update Bars safely
+        const pBar = document.getElementById('bar-power');
+        const sBar = document.getElementById('bar-speed');
+        if(pBar) pBar.style.width = alienStats[index].p + "%";
+        if(sBar) sBar.style.width = alienStats[index].s + "%";
+
+        if(dial) dial.rotation.y += (dir === 'next' ? 0.6 : -0.6);
+
+        setTimeout(() => { scrollLock = false; }, 400); // Increased lock to 400ms for stability
+    }
+
+    // INPUTS
+    window.addEventListener('wheel', (e) => { 
+        if (active && !transformed) {
+            e.preventDefault(); // Stop page from moving
+            changeAlien(e.deltaY > 0 ? 'next' : 'prev'); 
         }
+    }, { passive: false });
 
-        // INPUTS
-        window.addEventListener('wheel', (e) => { 
-            if (active && !transformed) changeAlien(e.deltaY > 0 ? 'next' : 'prev'); 
-        });
-
-        window.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; }, { passive: true });
-        window.addEventListener('touchend', (e) => {
-            let diff = touchStartY - e.changedTouches[0].clientY;
-            if (Math.abs(diff) < 10) { // Tap
-                if (transformed) return;
-                if (!active) {
-                    active = true;
-                    document.getElementById('status-display').innerText = "SYSTEM: ACTIVE";
-                    document.getElementById('architect-view').style.display = 'none';
-                    document.getElementById('tactical-view').style.display = 'block';
-                    document.getElementById('alien-label').style.opacity = 1;
-                    document.getElementById('instruction-group').style.display = "none";
-                    hologram.material.opacity = 0.8;
-                } else { transformed = true; document.getElementById('timer-label').style.opacity = 1; }
-            } else if (active && !transformed && Math.abs(diff) > 30) { // Swipe
-                changeAlien(diff > 0 ? 'next' : 'prev');
-            }
-        });
-
-        // Desktop Click
-        window.addEventListener('mousedown', (e) => {
-            if (e.button === 0 && !('ontouchstart' in window)) {
-                if (!active) {
-                    active = true;
-                    document.getElementById('status-display').innerText = "SYSTEM: ACTIVE";
-                    document.getElementById('architect-view').style.display = 'none';
-                    document.getElementById('tactical-view').style.display = 'block';
-                    document.getElementById('alien-label').style.opacity = 1;
-                    document.getElementById('instruction-group').style.display = "none";
-                    hologram.material.opacity = 0.8;
-                } else if (!transformed) { transformed = true; document.getElementById('timer-label').style.opacity = 1; }
-            }
-        });
-
-        function animate() {
-            requestAnimationFrame(animate);
-            if(active && !transformed) hologram.position.y = 1.8 + Math.sin(Date.now()*0.003)*0.05;
-            renderer.render(scene, camera);
+    // Click/Touch Activation
+    const handleAction = () => {
+        if (transformed) return;
+        if (!active) {
+            active = true;
+            document.getElementById('status-display').innerText = "SYSTEM: ACTIVE";
+            document.getElementById('architect-view').style.display = 'none';
+            document.getElementById('tactical-view').style.display = 'block';
+            document.getElementById('alien-label').style.opacity = 1;
+            document.getElementById('instruction-group').style.display = "none";
+            hologram.material.opacity = 0.8;
+        } else {
+            transformed = true;
+            document.getElementById('timer-label').style.opacity = 1;
         }
-        animate();
-    </script>
+    };
+
+    window.addEventListener('mousedown', (e) => { if(e.button === 0) handleAction(); });
+    window.addEventListener('touchstart', (e) => { 
+        touchStartY = e.touches[0].clientY; 
+        if(!active) handleAction(); 
+    }, { passive: true });
+
+    window.addEventListener('touchend', (e) => {
+        let diff = touchStartY - e.changedTouches[0].clientY;
+        if (active && !transformed && Math.abs(diff) > 40) {
+            changeAlien(diff > 0 ? 'next' : 'prev');
+        }
+    }, { passive: true });
+
+    function animate() {
+        requestAnimationFrame(animate);
+        if(active && !transformed) hologram.position.y = 1.8 + Math.sin(Date.now()*0.003)*0.05;
+        renderer.render(scene, camera);
+    }
+    animate();
+</script>
 </body>
 </html>
