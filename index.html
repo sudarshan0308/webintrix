@@ -120,17 +120,32 @@
         osc.start(); osc.stop(ctx.currentTime + 0.1);
     }
 
-    const alienStats = [
-        { n: "HEATBLAST", p: 85, f: 90, s: 60, t: './static/models/alien1.png' },
-        { n: "DIAMONDHEAD", p: 95, f: 85, s: 40, t: './static/models/alien2.png' },
-        { n: "XLR8", p: 50, f: 60, s: 100, t: './static/models/alien6.png' },
-        { n: "FOUR ARMS", p: 100, f: 95, s: 30, t: './static/models/alien3.png' },
-        { n: "GREY MATTER", p: 10, f: 20, s: 70, t: './static/models/alien5.png' }
-    ];
+    // FULL 10-ALIEN TACTICAL DATA
+const alienStats = [
+    { n: "HEATBLAST",    p: 85,  f: 90,  s: 60,  t: './static/models/alien1.png' },
+    { n: "DIAMONDHEAD",  p: 95,  f: 85,  s: 40,  t: './static/models/alien2.png' },
+    { n: "FOUR ARMS",    p: 100, f: 95,  s: 30,  t: './static/models/alien3.png' },
+    { n: "STINKFLY",     p: 60,  f: 70,  s: 85,  t: './static/models/alien4.png' },
+    { n: "GREY MATTER",  p: 10,  f: 20,  s: 70,  t: './static/models/alien5.png' },
+    { n: "XLR8",         p: 50,  f: 60,  s: 100, t: './static/models/alien6.png' },
+    { n: "WILDMUTT",     p: 75,  f: 90,  s: 80,  t: './static/models/alien7.png' },
+    { n: "UPGRADE",      p: 70,  f: 50,  s: 65,  t: './static/models/alien8.png' },
+    { n: "VERTIBRATE",      p: 80,  f: 85,  s: 75,  t: './static/models/alien9.png' },
+    { n: "GHOSTFREAK",   p: 65,  f: 75,  s: 90,  t: './static/models/alien10.png' }
+];
 
-    const texLoader = new THREE.TextureLoader();
-    hologram = new THREE.Sprite(new THREE.SpriteMaterial({ map: texLoader.load(alienStats[0].t), color: 0x00ff00, transparent: true, opacity: 0 }));
-    hologram.scale.set(1.6, 1.6, 1); hologram.position.y = 1.8; scene.add(hologram);
+// Initialize the hologram with the first alien (Heatblast)
+const texLoader = new THREE.TextureLoader();
+hologram = new THREE.Sprite(new THREE.SpriteMaterial({ 
+    map: texLoader.load(alienStats[0].t), 
+    color: 0x00ff00, 
+    transparent: true, 
+    opacity: 0 
+}));
+hologram.scale.set(1.6, 1.6, 1); 
+hologram.position.y = 1.8; 
+scene.add(hologram);
+
 
     new GLTFLoader().load('./static/models/omnitrix.glb', (g) => {
         scene.add(g.scene);
